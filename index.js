@@ -211,8 +211,13 @@ function transformStyles(code, stylesObj) {
             let existingStyleExpression = t.objectExpression([])
 
             if (styleAttrPath) {
-                const expr = styleAttrPath.node.value.expression
-                existingStyleExpression = expr || existingStyleExpression
+                const expr = styleAttrPath.node.value?.expression;
+                if (expr && expr.type === 'ObjectExpression') {
+                    existingStyleExpression = expr;
+                } else {
+                    console.warn(`[vite-nice-css] Skipping non-object style prop: ${generate(expr).code}, classNameKey: ${classNameKey}`);
+                    existingStyleExpression = babel.types.objectExpression([]);
+                }
             }
 
             const mergedStyleExpression = t.jsxExpressionContainer(
