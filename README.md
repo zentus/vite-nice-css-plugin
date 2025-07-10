@@ -19,3 +19,11 @@ export default defineConfig({
   ]
 })
 ```
+
+Import `bundle.css` in your `index.html`
+
+```html
+<head>
+  <link rel="stylesheet" type="text/css" href="/bundle.css" />
+</head>
+```
