@@ -9,6 +9,7 @@
 Add the plugin in your `vite.config.js`
 
 ```js
+import react from '@vitejs/plugin-react'
 import viteNiceCssPlugin from '@zentus/vite-nice-css-plugin'
 
 export default defineConfig({
