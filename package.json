@@ -16,6 +16,9 @@
   "exports": {
     ".": "./index.js"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "zentus",
   "license": "MIT"
 }
