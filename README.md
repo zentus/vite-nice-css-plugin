@@ -2,7 +2,7 @@
 
 ## Installation
 
-`npm install @zentus/vite-nice-css-plugin`
+`npm install --save-dev @zentus/vite-nice-css-plugin`
 
 ## Usage
 
