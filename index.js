@@ -311,17 +311,3 @@ function viteNiceCssPlugin() {
 }
 
 module.exports = viteNiceCssPlugin
-
-module.exports.eslint = {
-    rules: {
-        'css-template': require('./eslint-plugin'),
-    },
-    configs: {
-        recommended: {
-            plugins: ['@zentus/vite-nice-css-plugin'],
-            rules: {
-                '@zentus/vite-nice-css-plugin/css-template': 'error',
-            },
-        },
-    },
-};
