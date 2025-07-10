@@ -150,21 +150,29 @@ function transformStyles(code, stylesObj) {
     const ast = parser.parse(code, {
         plugins: ['jsx', 'typescript'],
         sourceType: 'module'
-    })
+    });
+
+    const t = babel.types;
 
     traverse(ast, {
+        VariableDeclarator(path) {
+            if (
+                path.node.id.name === 'styles' &&
+                path.node.init &&
+                t.isObjectExpression(path.node.init)
+            ) {
+                path.remove(); // remove const styles = { ... }
+            }
+        },
         JSXOpeningElement(path) {
-            const attributes = path.get('attributes')
+            const attributes = path.get('attributes');
 
-            let classNameAttrIndex = -1
-            // eslint-disable-next-line no-unused-vars
-            let styleAttrIndex = -1
-            let styleAttrPath = null
-            let classNameAttrPath = null
-            let classNameKey = null
+            let classNameAttrPath = null;
+            let styleAttrPath = null;
+            let classNameKey = null;
 
-            attributes.forEach((attrPath, i) => {
-                const attr = attrPath.node
+            attributes.forEach((attrPath) => {
+                const attr = attrPath.node;
                 if (
                     attr.type === 'JSXAttribute' &&
                     attr.name.name === 'className' &&
@@ -174,76 +182,55 @@ function transformStyles(code, stylesObj) {
                     attr.value.expression.object.name === 'styles' &&
                     attr.value.expression.property.type === 'Identifier'
                 ) {
-                    classNameAttrIndex = i
-                    classNameAttrPath = attrPath
-                    classNameKey = attr.value.expression.property.name
+                    classNameAttrPath = attrPath;
+                    classNameKey = attr.value.expression.property.name;
                 } else if (
                     attr.type === 'JSXAttribute' &&
                     attr.name.name === 'style'
                 ) {
-                    styleAttrIndex = i
-                    styleAttrPath = attrPath
+                    styleAttrPath = attrPath;
                 }
-            })
+            });
 
-            if (classNameAttrIndex === -1) return
+            if (!classNameAttrPath || !(classNameKey in stylesObj)) return;
 
-            if (!(classNameKey in stylesObj)) {
-                console.warn(`[vite-nice-css] No matching style found for key: ${classNameKey}`);
-                classNameAttrPath.remove()
-                return
-            }
-
-            const parsedStyleObj = parseCssObject(stylesObj[classNameKey])
-
-            const t = babel.types
+            const parsedStyleObj = parseCssObject(stylesObj[classNameKey]);
 
             const styleObjectExpression = t.objectExpression(
                 Object.entries(parsedStyleObj).map(([key, value]) => {
                     const keyNode = /^[a-zA-Z$_][a-zA-Z0-9$_]*$/.test(key)
                         ? t.identifier(key)
-                        : t.stringLiteral(key)
-
-                    return t.objectProperty(keyNode, t.stringLiteral(value))
+                        : t.stringLiteral(key);
+                    return t.objectProperty(keyNode, t.stringLiteral(value));
                 })
-            )
+            );
 
-            let existingStyleExpression = t.objectExpression([])
+            let mergedStyleExpression = styleObjectExpression;
 
             if (styleAttrPath) {
                 const expr = styleAttrPath.node.value?.expression;
                 if (expr && expr.type === 'ObjectExpression') {
-                    existingStyleExpression = expr;
-                } else {
-                    console.warn(`[vite-nice-css] Skipping non-object style prop: ${generate(expr).code}, classNameKey: ${classNameKey}`);
-                    existingStyleExpression = babel.types.objectExpression([]);
+                    mergedStyleExpression = t.callExpression(
+                        t.memberExpression(t.identifier('Object'), t.identifier('assign')),
+                        [styleObjectExpression, expr]
+                    );
                 }
-            }
-
-            const mergedStyleExpression = t.jsxExpressionContainer(
-                t.callExpression(
-                    t.memberExpression(t.identifier('Object'), t.identifier('assign')),
-                    [styleObjectExpression, existingStyleExpression]
-                )
-            )
-
-            if (styleAttrPath) {
                 styleAttrPath.replaceWith(
-                    t.jsxAttribute(t.jsxIdentifier('style'), mergedStyleExpression)
-                )
+                    t.jsxAttribute(t.jsxIdentifier('style'), t.jsxExpressionContainer(mergedStyleExpression))
+                );
             } else {
                 path.pushContainer(
                     'attributes',
-                    t.jsxAttribute(t.jsxIdentifier('style'), mergedStyleExpression)
-                )
+                    t.jsxAttribute(t.jsxIdentifier('style'), t.jsxExpressionContainer(mergedStyleExpression))
+                );
             }
 
-            classNameAttrPath.remove()
+            classNameAttrPath.remove();
         }
-    })
+    });
 
-    const output = generate(ast, {}, code)
-    return output.code
+    const output = generate(ast, {}, code);
+    return output.code;
 }
 
 function viteNiceCssPlugin() {
