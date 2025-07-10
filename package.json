@@ -13,6 +13,11 @@
     "postcss": "^8.4.38",
     "postcss-safe-parser": "^7.0.1"
   },
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
   "exports": {
     ".": "./index.js"
   },
