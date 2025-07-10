@@ -16,7 +16,8 @@
   "types": "index.d.ts",
   "files": [
     "index.js",
-    "index.d.ts"
+    "index.d.ts",
+    "eslint-plugin.js"
   ],
   "exports": {
     ".": "./index.js"
