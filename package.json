@@ -1,6 +1,6 @@
 {
   "name": "@zentus/vite-nice-css-plugin",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "A Vite plugin that allows CSS to be written in Vite React components, and compiled to a bundle.css file in production, and use inline styles in development",
   "main": "index.js",
   "type": "commonjs",
