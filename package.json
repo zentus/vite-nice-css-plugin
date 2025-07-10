@@ -20,5 +20,8 @@
     "access": "public"
   },
   "author": "zentus",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^7.0.4"
+  }
 }
